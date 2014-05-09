@@ -1129,6 +1129,7 @@ class ComputeManager(manager.SchedulerDependentManager):
             self._shutdown_instance(context, instance,
                                     bdms, requested_networks)
             self._cleanup_volumes(context, instance['uuid'], bdms)
+            self._cleanup_network(context, instance)
         except Exception:
             # do not attempt retry if clean up failed:
             with excutils.save_and_reraise_exception():
@@ -1707,6 +1708,13 @@ class ComputeManager(manager.SchedulerDependentManager):
             if bdm['volume_id'] and bdm['delete_on_termination']:
                 self.volume_api.delete(context, bdm['volume_id'])
             # NOTE(vish): bdms will be deleted on instance destroy
+
+    def _cleanup_network(self, context, instance):
+        try:
+            self._deallocate_network(context, instance)
+        except Exception:
+            msg = _('Failed to cleanup network for instance')
+            LOG.exception(msg, instance=instance)
 
     @hooks.add_hook("delete_instance")
     def _delete_instance(self, context, instance, bdms,
