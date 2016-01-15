@@ -4629,14 +4629,13 @@ class LibvirtDriver(driver.ComputeDriver):
                     encryptor.attach_volume(context, **encryption)
 
         timeout = CONF.vif_plugging_timeout
-        if (self._conn_supports_start_paused and
-            utils.is_neutron() and not
+        if (utils.is_neutron() and not
             vifs_already_plugged and power_on and timeout):
             events = self._get_neutron_events(network_info)
         else:
             events = []
 
-        pause = bool(events)
+        pause = bool(events) and self._conn_supports_start_paused()
         guest = None
         try:
             with self.virtapi.wait_for_instance_event(

@@ -12075,7 +12075,8 @@ class LibvirtConnTestCase(test.NoDBTestCase):
         def fake_lxc_disk_handler(*args, **kwargs):
             yield
 
-        drvr = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+        virtapi = mock.MagicMock()
+        drvr = libvirt_driver.LibvirtDriver(virtapi, False)
         instance = objects.Instance(**self.test_instance)
 
         with test.nested(
@@ -12090,6 +12091,7 @@ class LibvirtConnTestCase(test.NoDBTestCase):
                                                      instance, None, None)
             self.assertEqual(0, create.call_args_list[0][1]['pause'])
             self.assertEqual(0, domain.resume.call_count)
+            virtapi.assert_called_once_with('mu')
 
     def _test_create_with_network_events(self, neutron_failure=None,
                                          power_on=True):
